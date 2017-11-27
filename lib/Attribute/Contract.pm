@@ -154,13 +154,17 @@ sub findsym {
     my $type = ref($ref);
 
     no strict 'refs';
-    foreach my $sym (values %{$package . "::"}) {
+    my $symtab = \%{$package . "::"};
+    foreach (keys %$symtab) { foreach my $sym ( $$symtab{$_} ) {
+        if (ref $sym && $sym == $ref) {
+            return $symcache{$package, $ref} = \*{"$package:\:$_"};
+        }
         use strict;
         next unless ref(\$sym) eq 'GLOB';
 
         return $symcache{$package, $ref} = \$sym
           if *{$sym}{$type} && *{$sym}{$type} == $ref;
-    }
+    }}
 
     return;
 }
